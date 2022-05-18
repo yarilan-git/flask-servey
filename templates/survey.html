@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block css%}<link rel="stylesheet" href="/static/app.css">{% endblock %}
+{% block title %}{{title}}{% endblock %}
+
+{% block body %} 
+<h1>{{name}}</h1>
+
+{{instructions}}
+
+<form method = "get" action="/questions/0">
+    <button type="submit">Start the survey</button>
+</form>
+
+{% endblock %}
+    

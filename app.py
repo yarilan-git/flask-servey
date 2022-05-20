@@ -1,18 +1,18 @@
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect, flash, session
 from surveys import satisfaction_survey, personality_quiz, surveys
 
 app = Flask(__name__)
 app.secret_key = '123'
 
 
-responses = []
-next_q = 0
-
-
 @app.route('/')
 def show_servey():
     """Show the survey's home page and request user input"""
-    responses = []
+
+    session['responses'] = []
+    global next_q
+    global num
+
     next_q = 0
     num = 0
 
@@ -35,20 +35,27 @@ def question(num=0):
 @app.route('/answer', methods=['post'])
 def answer ():
     """Load the user's answers into the responses list. After the last question, thank the user."""
-    global responses
+    
     global next_q
-    i = int(request.form['choices'])
- 
-    responses.append(satisfaction_survey.questions[next_q].choices[i])    
-    next_q += 1
-    if len(satisfaction_survey.questions) == next_q:
-        target = "/thank-you"
+
+    if request.form.get('choices'):
+        i = int(request.form['choices'])
+        response_list = session['responses']
+        response_list.append(satisfaction_survey.questions[next_q].choices[i])    
+        session['responses'] = response_list
+        next_q += 1
+        if len(satisfaction_survey.questions) == next_q:
+            target = "/thank-you"
+        else:
+            target = f"/questions/{next_q}"
+        
+        return redirect(target)  
     else:
-        target = f"/questions/{next_q}"
-       
-    return redirect(target)  
+        flash("Please select an option below!")
+        return render_template('questions.html', question= satisfaction_survey.questions[num].question, choices=satisfaction_survey.questions[num].choices)
 
 @app.route('/thank-you')  
 def thanks():
     """Thank the user for participating in the survey"""
+
     return render_template('thank-you.html')
